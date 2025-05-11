@@ -154,7 +154,10 @@ const EditProfile: React.FC = () => {
     if (!validateForm()) {
       return
     }
-
+    if (!authContext || !authContext.userId) {
+      setError("Utilisateur non connecté.");
+      return;
+    }
     setSubmitting(true)
 
     const formData = new FormData()
@@ -162,6 +165,8 @@ const EditProfile: React.FC = () => {
     formData.append("lastName", lastName)
     formData.append("emailAddress", email)
     formData.append("phoneNumber", phoneNumber)
+    formData.append('UserId', authContext!.userId.toString());
+
 
     if (password) {
       formData.append("updatedPassword", password)
@@ -171,10 +176,10 @@ const EditProfile: React.FC = () => {
       formData.append("profilePicture", file)
     }
 
-    axios
-      .patch(`/api/user/${authContext?.userId}`, formData, {
-        headers: { Authorization: `Bearer ${authContext?.accessToken}` },
-      })
+    axios.patch(`/api/user/${authContext?.userId}`, formData, {
+      headers: { Authorization: `Bearer ${authContext?.accessToken}` },
+    })
+    
       .then(() => {
         setSuccess("Profil mis à jour avec succès !")
         setTimeout(() => {

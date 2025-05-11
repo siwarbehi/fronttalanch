@@ -63,6 +63,7 @@ const ProfileManagement: React.FC = () => {
     formData.append('lastName', lastName);
     formData.append('emailAddress', email);
     formData.append('phoneNumber', phoneNumber);
+    
 
     // Ajouter uniquement si l'utilisateur veut mettre à jour son mot de passe
     if (password) {

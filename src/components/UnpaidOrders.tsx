@@ -67,7 +67,7 @@ const UnpaidOrders: React.FC = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:5180/api/order/unpaid", {
+        const response = await axios.get("http://localhost:5180/api/order", {
           params: {
             PageNumber: pageNumber,
             PageSize: pageSize,
