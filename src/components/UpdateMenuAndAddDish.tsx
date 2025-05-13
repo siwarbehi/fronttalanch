@@ -240,7 +240,6 @@ export default function UpdateMenuAndAddDish({
 
     try {
       const menuId = currentMenu.menuId
-      console.log("menuId")
       // DTO pour le plat à ajouter
       const dto = {
         dishId: newDish.dishId,
@@ -313,12 +312,12 @@ export default function UpdateMenuAndAddDish({
 
       // Mettre à jour uniquement la description
       const dto = {
-        dishId: -1, // Utiliser un dishId négatif pour indiquer qu'on veut juste mettre à jour la description
+        dishId: null,
         quantity: 0,
-        newDescription: menuDescription,
+        Description: menuDescription,
       }
 
-      await axios.post(`${API_CONFIG.baseURL}/menu/${menuId}`, dto)
+      await axios.put(`${API_CONFIG.baseURL}/menu/${menuId}`, dto)
 
       setMessage("Menu mis à jour avec succès !")
       setSnackbarSeverity("success")

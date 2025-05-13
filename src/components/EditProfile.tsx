@@ -1,6 +1,3 @@
-"use client"
-
-import type React from "react"
 
 import { useContext, useEffect, useState } from "react"
 import { AuthContext } from "../contexts/AuthContext"
@@ -46,7 +43,6 @@ const customColors = {
 const EditProfile: React.FC = () => {
   const authContext = useContext(AuthContext)
   const navigate = useNavigate()
-  const serverUrl = "http://localhost:5180"
 
   const [userImage, setUserImage] = useState<string | null>(null)
   const [firstName, setFirstName] = useState<string>("")
@@ -73,11 +69,12 @@ const EditProfile: React.FC = () => {
         })
         .then((response) => {
           const profilePicture = response.data.profilePicture
-          setUserImage(
-            profilePicture && profilePicture !== "null"
-              ? `${serverUrl}/uploads/${profilePicture}`
-              : "/src/assets/social.png",
-          )
+        setUserImage(
+        profilePicture && profilePicture !== "null"
+        ? profilePicture
+        : "/src/assets/social.png"
+        )
+
           setFirstName(response.data.firstName || "")
           setLastName(response.data.lastName || "")
           setEmail(response.data.emailAddress || "")
@@ -183,7 +180,7 @@ const EditProfile: React.FC = () => {
       .then(() => {
         setSuccess("Profil mis à jour avec succès !")
         setTimeout(() => {
-          navigate("/user")
+          navigate("/sidebar/user")
         }, 1500)
       })
       .catch((err) => {
@@ -263,28 +260,7 @@ const EditProfile: React.FC = () => {
               },
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
-              <IconButton
-                onClick={handleCancel}
-                sx={{
-                  mr: 2,
-                  color: customColors.primary,
-                  "&:hover": { bgcolor: alpha(customColors.primary, 0.1) },
-                }}
-              >
-                <ArrowBackIcon />
-              </IconButton>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: "bold",
-                  color: customColors.primary,
-                }}
-              >
-                Modifier mon profil
-              </Typography>
-            </Box>
-
+         
             {error && (
               <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError(null)}>
                 {error}

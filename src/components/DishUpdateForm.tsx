@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import axios from "axios"
 import { alpha } from "@mui/system"
 import {
@@ -51,16 +49,11 @@ interface Dish {
   dishPhoto?: string
 }
 
-// Fonction pour formater le prix avec virgule pour l'affichage
-const formatPriceForDisplay = (price: number): string => {
-  return price.toString().replace(".", ",")
-}
+const formatPriceForDisplay = (price: number): string =>
+  price.toString().replace(".", ",")
 
-// Fonction pour convertir le prix avec virgule en format avec point pour le backend
-const formatPriceForBackend = (price: string): string => {
-  // Remplacer la virgule par un point et s'assurer que c'est une chaîne valide
-  return price.toString().replace(",", ".")
-}
+const formatPriceForBackend = (price: string): string =>
+  price.replace(",", ".")
 
 const DishUpdateForm: React.FC<DishUpdateFormProps> = ({
   dishId,
@@ -76,17 +69,16 @@ const DishUpdateForm: React.FC<DishUpdateFormProps> = ({
   }
 
   const [dishData, setDishData] = useState<Dish>({
-    dishId: dishId,
+    dishId,
     dishName: "",
     dishDescription: "",
     dishPrice: "",
   })
-
   const [dishPhoto, setDishPhoto] = useState<File | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
-  const [fetchLoading, setFetchLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string>("")
-  const [successMessage, setSuccessMessage] = useState<string>("")
+  const [loading, setLoading] = useState(false)
+  const [fetchLoading, setFetchLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [successMessage, setSuccessMessage] = useState("")
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
   const [fieldsChanged, setFieldsChanged] = useState<Set<string>>(new Set())
@@ -94,25 +86,20 @@ const DishUpdateForm: React.FC<DishUpdateFormProps> = ({
   const fetchDishData = useCallback(async () => {
     setFetchLoading(true)
     try {
-      const response = await axios.get(`http://localhost:5180/api/dish/${dishId}`)
-      const dish = response.data
-
-      // Handle different API response structures
-      const dishData = dish.$values ? dish.$values[0] : dish
+      const { data } = await axios.get(`http://localhost:5180/api/dish/${dishId}`)
+      const dto = data.$values ? data.$values[0] : data
 
       setDishData({
-        dishId: dishData.dishId,
-        dishName: dishData.dishName || "",
-        dishDescription: dishData.dishDescription || "",
-        // Formater le prix pour l'affichage avec virgule
-        dishPrice: formatPriceForDisplay(dishData.dishPrice || 0),
+        dishId: dto.dishId,
+        dishName: dto.dishName || "",
+        dishDescription: dto.dishDescription || "",
+        dishPrice: formatPriceForDisplay(dto.dishPrice || 0),
       })
-
-      if (dishData.dishPhoto) {
-        setOriginalImageUrl(`http://localhost:5180/dishes/${dishData.dishPhoto}`)
+      if (dto.dishPhoto) {
+        setOriginalImageUrl(dto.dishPhoto)
       }
     } catch (err) {
-      console.error("Error fetching dish data:", err)
+      console.error(err)
       setError("Erreur lors du chargement des données du plat.")
     } finally {
       setFetchLoading(false)
@@ -120,31 +107,20 @@ const DishUpdateForm: React.FC<DishUpdateFormProps> = ({
   }, [dishId])
 
   useEffect(() => {
-    if (open && dishId) {
+    if (open) {
       fetchDishData()
-      // Réinitialiser les champs modifiés lors de l'ouverture du formulaire
       setFieldsChanged(new Set())
     }
-  }, [open, dishId, fetchDishData])
+  }, [open, fetchDishData])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-
-    // Ajouter le nom du champ à l'ensemble des champs modifiés
-    setFieldsChanged((prev) => new Set(prev).add(name))
-
+    setFieldsChanged(prev => new Set(prev).add(name))
     if (name === "dishPrice") {
-      // Pour le champ de prix, accepter uniquement les chiffres et une virgule
-      const newValue = value.replace(/[^0-9,]/g, "")
-      setDishData((prevData) => ({
-        ...prevData,
-        [name]: newValue,
-      }))
+      const sanitized = value.replace(/[^0-9,]/g, "")
+      setDishData(prev => ({ ...prev, [name]: sanitized }))
     } else {
-      setDishData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }))
+      setDishData(prev => ({ ...prev, [name]: value }))
     }
   }
 
@@ -152,24 +128,15 @@ const DishUpdateForm: React.FC<DishUpdateFormProps> = ({
     const files = e.target.files
     if (files && files.length > 0) {
       setDishPhoto(files[0])
-      setFieldsChanged((prev) => new Set(prev).add("dishPhoto"))
-
-      // Create image preview
+      setFieldsChanged(prev => new Set(prev).add("Photo"))
       const reader = new FileReader()
-      reader.onload = () => {
-        setImagePreview(reader.result as string)
-      }
+      reader.onload = () => setImagePreview(reader.result as string)
       reader.readAsDataURL(files[0])
     }
   }
 
   const resetForm = () => {
-    setDishData({
-      dishId: dishId,
-      dishName: "",
-      dishDescription: "",
-      dishPrice: "",
-    })
+    setDishData({ dishId, dishName: "", dishDescription: "", dishPrice: "" })
     setDishPhoto(null)
     setImagePreview(null)
     setOriginalImageUrl(null)
@@ -180,56 +147,32 @@ const DishUpdateForm: React.FC<DishUpdateFormProps> = ({
 
   const handleClose = () => {
     resetForm()
-    if (onClose) {
-      onClose()
-    }
+    onClose?.()
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
-    setSuccessMessage("")
-    setLoading(true)
+    setError(""); setSuccessMessage(""); setLoading(true)
 
     const formData = new FormData()
-
-    // N'ajouter que les champs qui ont été modifiés
-    if (fieldsChanged.has("dishName")) {
-      formData.append("dishName", dishData.dishName)
-    }
-
-    if (fieldsChanged.has("dishDescription")) {
-      formData.append("dishDescription", dishData.dishDescription)
-    }
-
+    if (fieldsChanged.has("dishName")) formData.append("dishName", dishData.dishName)
+    if (fieldsChanged.has("dishDescription")) formData.append("dishDescription", dishData.dishDescription)
     if (fieldsChanged.has("dishPrice")) {
-      // Convertir le prix avec virgule en format avec point pour le backend
-      const formattedPrice = formatPriceForBackend(dishData.dishPrice.toString())
-      formData.append("dishPrice", formattedPrice)
+      formData.append("dishPrice", formatPriceForBackend(dishData.dishPrice.toString()))
     }
-
-    // Ajouter la photo si elle a été modifiée
     if (dishPhoto) {
-      formData.append("dishPhoto", dishPhoto)
+      formData.append("Photo", dishPhoto)
     }
 
     try {
-      // Utiliser PATCH au lieu de PUT pour correspondre au contrôleur backend
       await axios.patch(`http://localhost:5180/api/dish/${dishId}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       setSuccessMessage("Plat mis à jour avec succès !")
-
-      // Notify parent component of success if callback provided
-      if (onSuccess) {
-        setTimeout(() => {
-          onSuccess()
-          handleClose()
-        }, 1500) // Close after showing success message briefly
-      }
+      if (onSuccess) setTimeout(() => { onSuccess(); handleClose() }, 1500)
     } catch (err) {
-      setError("Erreur lors de la mise à jour du plat. Veuillez réessayer.")
       console.error(err)
+      setError("Erreur lors de la mise à jour du plat. Veuillez réessayer.")
     } finally {
       setLoading(false)
     }
@@ -237,211 +180,109 @@ const DishUpdateForm: React.FC<DishUpdateFormProps> = ({
 
   const formContent = (
     <>
-      {error && (
-        <Alert
-          severity="error"
-          sx={{
-            mb: 3,
-            borderRadius: 1,
-            bgcolor: alpha(customColors.accent, 0.1),
-            color: customColors.accent,
-            "& .MuiAlert-icon": {
-              color: customColors.accent,
-            },
-          }}
-        >
-          {error}
-        </Alert>
-      )}
+      {error && <Alert severity="error" sx={{ mb:3, bgcolor: alpha(customColors.accent,0.1), color: customColors.accent }}>{error}</Alert>}
+      {successMessage && <Alert severity="success" sx={{ mb:3, bgcolor: alpha(customColors.secondary,0.1), color: customColors.secondary }}>{successMessage}</Alert>}
 
-      {successMessage && (
-        <Alert
-          severity="success"
-          sx={{
-            mb: 3,
-            borderRadius: 1,
-            bgcolor: alpha(customColors.secondary, 0.1),
-            color: customColors.secondary,
-            "& .MuiAlert-icon": {
-              color: customColors.secondary,
-            },
-          }}
-        >
-          {successMessage}
-        </Alert>
-      )}
-
-      {fetchLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
-          <CircularProgress sx={{ color: customColors.primary }} />
-        </Box>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <Stack spacing={3}>
-            <TextField
-              fullWidth
-              label="Nom du Plat"
-              name="dishName"
-              value={dishData.dishName}
-              onChange={handleChange}
-              required
-              variant="outlined"
-              placeholder="Ex: Lasagne Végétarienne"
-              sx={{
-                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: customColors.primary,
-                },
-                "& .MuiInputLabel-root.Mui-focused": {
-                  color: customColors.primary,
-                },
-              }}
-            />
-
-            <TextField
-              fullWidth
-              label="Description"
-              name="dishDescription"
-              value={dishData.dishDescription}
-              onChange={handleChange}
-              multiline
-              rows={4}
-              variant="outlined"
-              placeholder="Décrivez les ingrédients et la préparation..."
-              sx={{
-                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: customColors.primary,
-                },
-                "& .MuiInputLabel-root.Mui-focused": {
-                  color: customColors.primary,
-                },
-              }}
-            />
-
-            <TextField
-              fullWidth
-              label="Prix"
-              name="dishPrice"
-              type="text"
-              value={dishData.dishPrice}
-              onChange={handleChange}
-              required
-              variant="outlined"
-              placeholder="Ex: 12,55"
-              inputProps={{ inputMode: "decimal", pattern: "[0-9]+([,][0-9]*)?" }}
-              InputProps={{
-                endAdornment: <InputAdornment position="end">DT</InputAdornment>,
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: customColors.primary,
-                },
-                "& .MuiInputLabel-root.Mui-focused": {
-                  color: customColors.primary,
-                },
-              }}
-            />
-
-            <Divider sx={{ my: 1 }} />
-
-            <Box>
-              <Typography variant="subtitle1" gutterBottom>
-                Photo du plat
-              </Typography>
-
-              <Button
-                component="label"
-                variant="outlined"
-                startIcon={<CloudUploadIcon />}
+      {fetchLoading
+        ? <Box sx={{ display:"flex", justifyContent:"center", my:4 }}><CircularProgress sx={{ color: customColors.primary }} /></Box>
+        : <form onSubmit={handleSubmit}>
+            <Stack spacing={3}>
+              <TextField
+                fullWidth label="Nom du Plat"
+                name="dishName" value={dishData.dishName}
+                onChange={handleChange} required
+                placeholder="Ex: Lasagne Végétarienne"
                 sx={{
-                  mb: 2,
-                  width: "100%",
-                  borderColor: customColors.primary,
-                  color: customColors.primary,
-                  "&:hover": {
-                    borderColor: customColors.accent,
-                    color: customColors.accent,
-                  },
+                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: customColors.primary },
+                  "& .MuiInputLabel-root.Mui-focused": { color: customColors.primary },
                 }}
-              >
-                Télécharger une photo
-                <VisuallyHiddenInput id="dish-photo-input" type="file" accept="image/*" onChange={handleFileChange} />
-              </Button>
+              />
 
-              {(imagePreview || originalImageUrl) && (
-                <Box
+              <TextField
+                fullWidth label="Description"
+                name="dishDescription" value={dishData.dishDescription}
+                onChange={handleChange} multiline rows={4}
+                placeholder="Décrivez les ingrédients..."
+                sx={{
+                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: customColors.primary },
+                  "& .MuiInputLabel-root.Mui-focused": { color: customColors.primary },
+                }}
+              />
+
+              <TextField
+                fullWidth label="Prix"
+                name="dishPrice" type="text"
+                value={dishData.dishPrice} onChange={handleChange}
+                required placeholder="Ex: 12,55"
+                inputProps={{ inputMode: "decimal", pattern: "[0-9]+([,][0-9]*)?" }}
+                InputProps={{ endAdornment:<InputAdornment position="end">DT</InputAdornment> }}
+                sx={{
+                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: customColors.primary },
+                  "& .MuiInputLabel-root.Mui-focused": { color: customColors.primary },
+                }}
+              />
+
+              <Divider sx={{ my:1 }} />
+
+              <Box>
+                <Typography variant="subtitle1" gutterBottom>Photo du plat</Typography>
+                <Button
+                  component="label" variant="outlined" startIcon={<CloudUploadIcon />}
                   sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    mb: 2,
+                    mb:2, width:"100%", borderColor:customColors.primary, color:customColors.primary,
+                    "&:hover":{ borderColor:customColors.accent, color:customColors.accent }
                   }}
                 >
-                  <img
-                    src={imagePreview || originalImageUrl || ""}
-                    alt="Aperçu du plat"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "300px",
-                      objectFit: "contain",
-                    }}
-                  />
-                </Box>
-              )}
-            </Box>
+                  Télécharger une photo
+                  <VisuallyHiddenInput type="file" accept="image/*" onChange={handleFileChange} />
+                </Button>
 
-            <Stack direction="row" justifyContent="flex-end" spacing={2}>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={handleClose}
-                sx={{
-                  width: "auto",
-                  color: customColors.accent,
-                  borderColor: customColors.accent,
-                  "&:hover": {
-                    borderColor: customColors.primary,
-                    color: customColors.primary,
-                  },
-                }}
-              >
-                Annuler
-              </Button>
+                {(imagePreview || originalImageUrl) && (
+                  <Box sx={{ display:"flex", justifyContent:"center", mb:2 }}>
+                    <img
+                      src={imagePreview || originalImageUrl!}
+                      alt="Aperçu du plat"
+                      style={{ maxWidth:"100%", maxHeight:300, objectFit:"contain" }}
+                    />
+                  </Box>
+                )}
+              </Box>
 
-              <Button
-                variant="contained"
-                color="primary"
-                type="submit"
-                disabled={loading || fieldsChanged.size === 0}
-                sx={{
-                  width: "auto",
-                  backgroundColor: customColors.primary,
-                  "&:hover": {
-                    backgroundColor: customColors.accent,
-                  },
-                }}
-              >
-                {loading ? <CircularProgress size={24} color="inherit" /> : "Mettre à jour"}
-              </Button>
+              <Stack direction="row" justifyContent="flex-end" spacing={2}>
+                <Button variant="outlined" color="error" onClick={handleClose}
+                  sx={{
+                    color: customColors.accent,
+                    borderColor: customColors.accent,
+                    "&:hover":{ color:customColors.primary, borderColor:customColors.primary }
+                  }}
+                >
+                  Annuler
+                </Button>
+                <Button variant="contained" color="primary" type="submit"
+                  disabled={loading || fieldsChanged.size===0}
+                  sx={{
+                    backgroundColor: customColors.primary,
+                    "&:hover":{ backgroundColor: customColors.accent }
+                  }}
+                >
+                  {loading ? <CircularProgress size={24} color="inherit"/> : "Mettre à jour"}
+                </Button>
+              </Stack>
             </Stack>
-          </Stack>
-        </form>
-      )}
+          </form>
+      }
     </>
   )
 
-  // Si le composant est utilisé en mode autonome, afficher directement le contenu
   if (isStandalone) {
-    return <Box sx={{ p: 3 }}>{formContent}</Box>
+    return <Box sx={{ p:3 }}>{formContent}</Box>
   }
-
-  // Sinon, afficher dans une boîte de dialogue
   return open ? (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        <Typography variant="h5" component="span">
-          Modifier le plat
-        </Typography>
-        <IconButton onClick={handleClose} sx={{ position: "absolute", top: 8, right: 8 }}>
-          <CloseIcon />
+        <Typography variant="h5">Modifier le plat</Typography>
+        <IconButton onClick={handleClose} sx={{ position:"absolute", top:8, right:8 }}>
+          <CloseIcon/>
         </IconButton>
       </DialogTitle>
       <DialogContent>{formContent}</DialogContent>

@@ -200,7 +200,6 @@ const DishTable: React.FC = () => {
   }
 
   // Remplacer cette valeur par l'URL du serveur réel
-  const serverUrl = "http://localhost:5180" // ou l'URL appropriée pour votre serveur
 
   useEffect(() => {
     loadDishes()
@@ -805,12 +804,12 @@ const DishTable: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Box
-                            component="img"
-                            src={
-                              dish.dishPhoto
-                                ? `${serverUrl}/dishes/${dish.dishPhoto}`
-                                : "https://via.placeholder.com/80"
-                            }
+  component="img"
+  src={
+    dish.dishPhoto
+      ? dish.dishPhoto // déjà une URL complète comme "https://talunch.blob.core.windows.net/dishimages/xxx.png"
+      : "https://via.placeholder.com/80"
+  }
                             alt={dish.dishName}
                             sx={{
                               width: 80,
@@ -926,12 +925,12 @@ const DishTable: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Box
-                            component="img"
-                            src={
-                              dish.dishPhoto
-                                ? `${serverUrl}/dishes/${dish.dishPhoto}`
-                                : "https://via.placeholder.com/80"
-                            }
+  component="img"
+  src={
+    dish.dishPhoto
+      ? dish.dishPhoto // déjà une URL complète comme "https://talunch.blob.core.windows.net/dishimages/xxx.png"
+      : "https://via.placeholder.com/80"
+  }
                             alt={dish.dishName}
                             sx={{
                               width: 80,
@@ -1045,12 +1044,12 @@ const DishTable: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Box
-                            component="img"
-                            src={
-                              dish.dishPhoto
-                                ? `${serverUrl}/dishes/${dish.dishPhoto}`
-                                : "https://via.placeholder.com/80"
-                            }
+  component="img"
+  src={
+    dish.dishPhoto
+      ? dish.dishPhoto // déjà une URL complète comme "https://talunch.blob.core.windows.net/dishimages/xxx.png"
+      : "https://via.placeholder.com/80"
+  }
                             alt={dish.dishName}
                             sx={{
                               width: 80,

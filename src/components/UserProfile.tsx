@@ -51,47 +51,50 @@ const UserProfile: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const defaultProfilePicture = "/src/assets/social.png";
-  const serverUrl = "http://localhost:5180";
 
-  useEffect(() => {
-    if (authContext && authContext.tokensAndIdExist) {
-      const fetchUserData = async () => {
-        setLoading(true);
-        try {
-          const response = await axios.get(`/api/user/${authContext.userId}`, {
-            headers: {
-              Authorization: `Bearer ${authContext.accessToken}`,
-            },
-          });
+useEffect(() => {
+  if (authContext && authContext.tokensAndIdExist) {
+    const fetchUserData = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`/api/user/${authContext.userId}`, {
+          headers: {
+            Authorization: `Bearer ${authContext.accessToken}`,
+          },
+        });
 
-          setUserData(response.data);
+        setUserData(response.data);
 
-          const userProfilePicture = response.data.profilePicture;
-          if (userProfilePicture) {
-            setProfilePicture(`${serverUrl}/uploads/${userProfilePicture}`);
-          } else {
-            setProfilePicture(defaultProfilePicture);
-          }
-        } catch (error) {
-          if (error instanceof Error) {
-            setError(
-              `Erreur lors du chargement des données utilisateur: ${error.message}`
-            );
-          } else {
-            setError("Erreur inconnue");
-          }
-          setProfilePicture(defaultProfilePicture);
-        } finally {
-          setLoading(false);
+        const userProfilePicture = response.data.profilePicture;
+
+        // Vérifie si c'est un lien vers une image
+        const isImage = userProfilePicture?.match(/\.(jpeg|jpg|png|gif|bmp|webp)$/i);
+
+        if (userProfilePicture && isImage) {
+          setProfilePicture(userProfilePicture);
+        } else {
+          setProfilePicture(defaultProfilePicture); // Sinon image par défaut
         }
-      };
 
-      fetchUserData();
-    }
-  }, [authContext]);
+      } catch (error) {
+        if (error instanceof Error) {
+          setError(`Erreur lors du chargement des données utilisateur: ${error.message}`);
+        } else {
+          setError("Erreur inconnue");
+        }
+        setProfilePicture(defaultProfilePicture);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }
+}, [authContext]);
+
 
   const handleEditProfile = () => {
-    navigate("/profile-edit");
+    navigate("/sidebar/profile-edit");
   };
 
   if (!authContext || !authContext.tokensAndIdExist) {

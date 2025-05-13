@@ -1,4 +1,4 @@
-import { Box, CircularProgress } from '@mui/material'; // Ajouté CircularProgress
+import { Box, CircularProgress } from '@mui/material'; 
 import { Drawer, AppBar, CssBaseline, Toolbar, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { useNavigate, Outlet } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -9,20 +9,20 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import PaymentIcon from '@mui/icons-material/Payment';
 import LogoutIcon from '@mui/icons-material/ExitToApp';
 import { useLogout } from './Logout';
-import { useState } from 'react'; // <--- Ajoute useState
+import { useState } from 'react'; 
 
 const drawerWidth = 240;
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, route: '/login' },
-  { text: 'Commandes', icon: <ShoppingCartIcon />, route: '/orders' },
-  { text: 'Plats', icon: <RestaurantMenuIcon />, route: '/dishes' },
-  { text: 'Menu', icon: <MenuBookIcon />, route: '/menu' },
+  { text: 'Dashboard', icon: <DashboardIcon />, route: '/sidebar/login' },
+  { text: 'Commandes', icon: <ShoppingCartIcon />, route: '/sidebar/orders' },
+  { text: 'Plats', icon: <RestaurantMenuIcon />, route: '/sidebar/dishes' },
+  { text: 'Menu', icon: <MenuBookIcon />, route: '/sidebar/menu' },
 ];
 
 const secondaryItems = [
-  { text: 'Profile', icon: <AccountCircleIcon />, route: '/user' },
-  { text: 'Impayées', icon: <PaymentIcon />, route: '/Unpaid' },
+  { text: 'Profile', icon: <AccountCircleIcon />, route: '/sidebar/user' },
+  { text: 'Impayées', icon: <PaymentIcon />, route: '/sidebar/Unpaid' },
 ];
 
 export default function Sidebar() {
@@ -37,7 +37,7 @@ export default function Sidebar() {
   const handleLogout = async () => {
     setLoadingLogout(true);
     try {
-      await logout(); // Ton hook `useLogout`
+      await logout(); 
     } finally {
       setLoadingLogout(false);
     }

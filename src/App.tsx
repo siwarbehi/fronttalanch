@@ -1,4 +1,3 @@
-"use client"
 
 import { BrowserRouter as Router, Route, Routes, useParams } from "react-router-dom"
 import Sidebar from "./components/SideBar"
@@ -30,7 +29,7 @@ const App = () => {
         <Routes>
           {/* Routes publiques */}
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/dishes/edit/:id" element={<DishUpdateWrapper />} />
@@ -39,7 +38,7 @@ const App = () => {
           <Route path="/p" element={<MenusList />} />
 
           {/* Routes protégées */}
-          <Route path="/*" element={<Sidebar />}>
+          <Route path="/sidebar" element={<Sidebar />}>
             <Route path="dishes" element={<DishTable />} />
             <Route path="menu" element={<MenuTable />} />
             <Route path="user" element={<UserProfile />} />
