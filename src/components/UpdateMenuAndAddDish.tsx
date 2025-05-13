@@ -25,7 +25,7 @@ import {
   Alert,
   Chip,
 } from "@mui/material"
-import { Add as AddIcon, Edit as EditIcon } from "@mui/icons-material"
+import { Edit as EditIcon } from "@mui/icons-material"
 
 // Configuration
 const API_CONFIG = {
@@ -41,7 +41,7 @@ interface Dish {
 }
 
 interface DishSelection {
-  dishId: number
+  dishId: number | null
   dishQuantity: number
 }
 
@@ -86,7 +86,7 @@ export default function UpdateMenuAndAddDish({
 }: UpdateMenuAndAddDishProps) {
   const [menuDescription, setMenuDescription] = useState<string>("")
   const [existingDishes, setExistingDishes] = useState<MenuType["dishes"]>([])
-  const [newDish, setNewDish] = useState<DishSelection>({ dishId: 0, dishQuantity: 1 })
+  const [newDish, setNewDish] = useState<DishSelection>({ dishId: null, dishQuantity: 1 })
   const [availableDishes, setAvailableDishes] = useState<Dish[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [fetchingDishes, setFetchingDishes] = useState<boolean>(false)
@@ -101,7 +101,6 @@ export default function UpdateMenuAndAddDish({
       setMenuDescription(currentMenu.menuDescription || "")
       setValidationErrors({})
       setMessage(null)
-      setNewDish({ dishId: 0, dishQuantity: 1 })
 
       // Charger les plats existants
       if (currentMenu.dishes && currentMenu.dishes.length > 0) {
@@ -217,88 +216,6 @@ export default function UpdateMenuAndAddDish({
       setIsLoading(false);
     }
   };
-  
-
-  const validateForm = (): boolean => {
-    const errors: { [key: string]: string } = {}
-    let isValid = true
-
-    // Validation uniquement si on ajoute un nouveau plat
-    if (newDish.dishId <= 0) {
-      errors["new-dish"] = "Veuillez sélectionner un plat"
-      isValid = false
-    }
-
-    setValidationErrors(errors)
-    return isValid
-  }
-
-  const handleAddDish = async () => {
-    if (!validateForm() || !currentMenu) return
-
-    setIsLoading(true)
-
-    try {
-      const menuId = currentMenu.menuId
-      // DTO pour le plat à ajouter
-      const dto = {
-        dishId: newDish.dishId,
-        quantity: newDish.dishQuantity,
-        newDescription: menuDescription,
-      }
-  
-      const response = await axios.post(`${API_CONFIG.baseURL}/menu/${menuId}`, dto)
-
-      // Si le plat est déjà présent, afficher un message d'erreur
-      if (response.data?.dishAlreadyExists) {
-        const selectedDish = availableDishes.find((dish) => dish.dishId === newDish.dishId)
-        setMessage(`Le plat "${selectedDish?.dishName}" est déjà dans ce menu.`)
-        setSnackbarSeverity("error")
-        setSnackbarOpen(true)
-        setIsLoading(false)
-        return
-      }
-      console.log("menuId", menuId)
-      console.log("dto", dto)
-      // Ajouter le plat à la liste des plats existants
-      const selectedDish = availableDishes.find((dish) => dish.dishId === newDish.dishId)
-      if (selectedDish) {
-        setExistingDishes([
-          ...existingDishes,
-          {
-            dishId: newDish.dishId,
-            dishName: selectedDish.dishName,
-            dishQuantity: newDish.dishQuantity,
-          },
-        ])
-      }
-
-      // Réinitialiser le formulaire d'ajout de plat
-      setNewDish({ dishId: 0, dishQuantity: 1 })
-
-      setMessage("Plat ajouté avec succès !")
-      setSnackbarSeverity("success")
-      setSnackbarOpen(true)
-    } catch (error) {
-      console.error("Erreur lors de l'ajout du plat", error)
-
-      let errorMessage = "Une erreur est survenue lors de l'ajout du plat"
-      if (axios.isAxiosError(error)) {
-        if (error.response?.data) {
-          errorMessage =
-            typeof error.response.data === "string" ? error.response.data : error.response.data.message || error.message
-        } else if (error.message) {
-          errorMessage = error.message
-        }
-      }
-
-      setMessage(errorMessage)
-      setSnackbarSeverity("error")
-      setSnackbarOpen(true)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -310,10 +227,9 @@ export default function UpdateMenuAndAddDish({
     try {
       const menuId = currentMenu.menuId
 
-      // Mettre à jour uniquement la description
       const dto = {
-        dishId: null,
-        quantity: 0,
+        dishId: newDish.dishId,
+        quantity: newDish.dishQuantity,
         Description: menuDescription,
       }
 
@@ -397,7 +313,7 @@ export default function UpdateMenuAndAddDish({
         </DialogTitle>
 
         <DialogContent sx={{ px: 3, py: 2 }}>
-          <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }}>
+          <Box component="form" sx={{ width: "100%" }}>
             <TextField
               fullWidth
               label="Description du menu"
@@ -441,27 +357,6 @@ export default function UpdateMenuAndAddDish({
                 <Typography variant="h6" color={customColors.primary} fontWeight="medium">
                   Ajouter un plat
                 </Typography>
-                <Button
-                  variant="outlined"
-                  onClick={handleAddDish}
-                  disabled={isLoading || newDish.dishId <= 0}
-                  size="small"
-                  sx={{
-                    borderColor: alpha(customColors.secondary, 0.7),
-                    color: customColors.secondary,
-                    minWidth: "36px",
-                    width: "36px",
-                    height: "36px",
-                    borderRadius: "50%",
-                    p: 0,
-                    "&:hover": {
-                      borderColor: customColors.secondary,
-                      backgroundColor: alpha(customColors.secondary, 0.05),
-                    },
-                  }}
-                >
-                  <AddIcon />
-                </Button>
               </Box>
 
               {fetchingDishes ? (
@@ -483,7 +378,7 @@ export default function UpdateMenuAndAddDish({
                         <InputLabel id="new-dish-select-label">Sélectionner un plat</InputLabel>
                         <Select
                           labelId="new-dish-select-label"
-                          value={newDish.dishId.toString()}
+                          value={newDish?.dishId?.toString()}
                           onChange={(e) => handleDishChange(Number(e.target.value))}
                           label="Sélectionner un plat"
                         >
@@ -538,6 +433,7 @@ export default function UpdateMenuAndAddDish({
             Annuler
           </Button>
           <Button
+            // onClick={handleAddDish}
             onClick={handleSubmit}
             variant="contained"
             disabled={isLoading}
